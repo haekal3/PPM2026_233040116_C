@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'edit_profile_page.dart';
+import 'edit_pengalaman_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,21 +20,37 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  // Data Profil Utama
+  String nama = 'HAEKAL KHADAFY';
+  String tentangSaya = 'Saat ini saya berfokus pada pengembangan dashboard keuangan klinik dan pembuatan aplikasi mobile Word Reminder.';
+  String pendidikan = 'Teknik Informatika Universitas Pasundan';
+  String kontak = 'haekal@student.unpas.ac.id';
+  String pengalamanStatis = 'Freelance Mobile Developer\nFreelance Web Developer';
+  String proyek = '• Dashboard Keuangan Klinik\n• Word Reminder (Aplikasi kuis dan pengingat kosakata)';
+  List<String> skills = ['Flutter', 'Laravel', 'Java', 'PHP', 'UI/UX'];
+  String? imagePath;
+
+  // Data Pengalaman Dinamis (Hasil Sidebar Edit Pengalaman)
+  String? uploadedJudul;
+  String? uploadedDeskripsi;
+  String? uploadedImagePath;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
-
       appBar: AppBar(
         title: const Text('Profil Saya'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
-        ],
       ),
       drawer: Drawer(
         child: ListView(
@@ -39,41 +59,45 @@ class ProfilePage extends StatelessWidget {
               decoration: BoxDecoration(color: Colors.blue),
               child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
-            const ListTile(leading: Icon(Icons.home), title: Text('Beranda')),
-            const ListTile(leading: Icon(Icons.person), title: Text('Profil')),
-
             ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Pengaturan'),
-              onTap: () {
-                Navigator.pop(context);
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Pengaturan'),
-                    content: const Text('Fitur pengaturan belum tersedia.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Tutup'),
-                      ),
-                    ],
-                  ),
-                );
-              },
+              leading: const Icon(Icons.person),
+              title: const Text('Profil'),
+              onTap: () => Navigator.pop(context),
             ),
-            const ListTile(leading: Icon(Icons.info), title: Text('Tentang')),
-
             ListTile(
               leading: const Icon(Icons.widgets),
               title: const Text('Widget Gallery'),
-              onTap: () {
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.add_to_photos),
+              title: const Text('Upload Pengalaman'),
+              onTap: () async {
                 Navigator.pop(context);
-                Navigator.push(
+                final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const GalleryHome()),
+                  MaterialPageRoute(
+                    builder: (context) => EditPengalamanPage(
+                      initialJudul: uploadedJudul,
+                      initialDeskripsi: uploadedDeskripsi,
+                      initialImagePath: uploadedImagePath,
+                    ),
+                  ),
                 );
+
+                if (result != null) {
+                  setState(() {
+                    uploadedJudul = result['judul'];
+                    uploadedDeskripsi = result['deskripsi'];
+                    uploadedImagePath = result['imagePath'];
+                  });
+                }
               },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Pengaturan'),
+              onTap: () => Navigator.pop(context),
             ),
           ],
         ),
@@ -81,22 +105,46 @@ class ProfilePage extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(30),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Header Profil
             Center(
               child: Column(
                 children: [
-                  const CircleAvatar(
-                    radius: 80,
-                    backgroundImage: AssetImage('asset/foto_saya1.jpg'),
-                    backgroundColor: Colors.transparent,
+                  Container(
+                    width: 160,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 4),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 2)
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: imagePath != null && imagePath!.isNotEmpty
+                          ? (kIsWeb
+                              ? Image.network(
+                                  imagePath!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Image.asset('asset/foto_saya1.jpg', fit: BoxFit.cover);
+                                  },
+                                )
+                              : Image.file(
+                                  File(imagePath!),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Image.asset('asset/foto_saya1.jpg', fit: BoxFit.cover);
+                                  },
+                                ))
+                          : Image.asset('asset/foto_saya1.jpg', fit: BoxFit.cover),
+                    ),
                   ),
                   const SizedBox(height: 14),
-                  const Text(
-                    'HAEKAL KHADAFY',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  Text(
+                    nama,
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 4),
                   Text(
                     'Mahasiswa Teknik Informatika Unpas',
                     style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
@@ -114,28 +162,66 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 30),
 
-            const SectionCard(
+            SectionCard(
               icon: Icons.info_outline,
               title: 'Tentang Saya',
-              content: 'Saat ini saya berfokus pada pengembangan dashboard keuangan klinik dan pembuatan aplikasi mobile Word Reminder.',
+              content: tentangSaya,
             ),
-
-            const SectionCard(
+            SectionCard(
               icon: Icons.school,
               title: 'Pendidikan',
-              content: 'Teknik Informatika Universitas Pasundan',
+              content: pendidikan,
+            ),
+            SectionCard(
+              icon: Icons.email_outlined,
+              title: 'Kontak',
+              content: kontak,
             ),
 
-            const SectionCard(
-              icon: Icons.work_outline,
-              title: 'Pengalaman',
-              content: 'Freelance Mobile Developer\nFreelance Web Developer',
-            ),
+            // KARTU PENGALAMAN DINAMIS (Muncul jika ada data)
+            if (uploadedJudul != null && uploadedJudul!.isNotEmpty)
+              Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                color: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.work_history, color: Colors.blue, size: 28),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Pengalaman (Terbaru)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 10),
+                            if (uploadedImagePath != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: kIsWeb
+                                      ? Image.network(uploadedImagePath!, width: double.infinity, height: 150, fit: BoxFit.cover)
+                                      : Image.file(File(uploadedImagePath!), width: double.infinity, height: 150, fit: BoxFit.cover),
+                                ),
+                              ),
+                            Text(uploadedJudul!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                            const SizedBox(height: 4),
+                            Text(uploadedDeskripsi ?? '', style: const TextStyle(height: 1.4)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
-            const SectionCard(
+            SectionCard(
               icon: Icons.folder_open,
               title: 'Proyek',
-              content: '• Dashboard Keuangan Klinik\n• Word Reminder (Aplikasi kuis dan pengingat kosakata)',
+              content: proyek,
             ),
 
             Card(
@@ -157,13 +243,7 @@ class ProfilePage extends StatelessWidget {
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
-                            children: const [
-                              Chip(label: Text('Flutter')),
-                              Chip(label: Text('Laravel')),
-                              Chip(label: Text('Java')),
-                              Chip(label: Text('PHP')),
-                              Chip(label: Text('UI/UX')),
-                            ],
+                            children: skills.map((s) => Chip(label: Text(s))).toList(),
                           ),
                         ],
                       ),
@@ -176,29 +256,35 @@ class ProfilePage extends StatelessWidget {
           ],
         ),
       ),
-
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Edit profil belum tersedia'),
-              duration: Duration(seconds: 2),
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EditProfilePage(
+                initialNama: nama,
+                initialTentang: tentangSaya,
+                initialPendidikan: pendidikan,
+                initialKontak: kontak,
+                initialProyek: proyek,
+                initialImagePath: imagePath,
+              ),
             ),
           );
-        },
-        label: const Text('Edit'),
-        icon: const Icon(Icons.edit),
-      ),
 
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: 0,
-        onDestinationSelected: (int index) {},
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.person), label: 'Profil'),
-          NavigationDestination(icon: Icon(Icons.message), label: 'Pesan'),
-          NavigationDestination(icon: Icon(Icons.settings), label: 'Setting'),
-        ],
+          if (result != null) {
+            setState(() {
+              nama = result['nama'];
+              tentangSaya = result['tentang'];
+              pendidikan = result['pendidikan'];
+              kontak = result['kontak'];
+              proyek = result['proyek'];
+              imagePath = result['imagePath'];
+            });
+          }
+        },
+        label: const Text('Edit Profil'),
+        icon: const Icon(Icons.edit),
       ),
     );
   }
@@ -225,12 +311,7 @@ class SectionCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String content;
-  const SectionCard({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.content,
-  });
+  const SectionCard({super.key, required this.icon, required this.title, required this.content});
 
   @override
   Widget build(BuildContext context) {
@@ -257,125 +338,6 @@ class SectionCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class GalleryHome extends StatelessWidget {
-  const GalleryHome({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final categories = [
-      ('Display', Icons.image, Colors.indigo),
-      ('Input', Icons.edit, Colors.teal),
-    ];
-    return Scaffold(
-      appBar: AppBar(title: const Text('Widget Gallery')),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: categories.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
-        itemBuilder: (context, i) {
-          final (name, icon, color) = categories[i];
-          return Card(
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: color,
-                child: Icon(icon, color: Colors.white),
-              ),
-              title: Text(name),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => CategoryPage(name: name)),
-                );
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class CategoryPage extends StatelessWidget {
-  final String name;
-  const CategoryPage({super.key, required this.name});
-
-  @override
-  Widget build(BuildContext context) {
-    Widget bodyContent = Center(child: Text('Konten kategori $name'));
-
-    if (name == 'Display') bodyContent = const DisplayDemo();
-    if (name == 'Input') bodyContent = const InputDemo();
-
-    return Scaffold(
-      appBar: AppBar(title: Text(name)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: bodyContent,
-      ),
-    );
-  }
-}
-
-class DisplayDemo extends StatelessWidget {
-  const DisplayDemo({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Card', style: TextStyle(fontWeight: FontWeight.bold)),
-        Card(
-          child: ListTile(
-            leading: Icon(Icons.album),
-            title: Text('Judul Item'),
-            subtitle: Text('Sub-judul'),
-          ),
-        ),
-        SizedBox(height: 16),
-        Text('Chip', style: TextStyle(fontWeight: FontWeight.bold)),
-        Wrap(
-          spacing: 8,
-          children: [
-            Chip(label: Text('Flutter')),
-            Chip(label: Text('Dart')),
-            Chip(label: Text('Mobile')),
-          ],
-        ),
-        SizedBox(height: 16),
-        Text('Badge (Widget Tambahan)', style: TextStyle(fontWeight: FontWeight.bold)),
-        Badge(
-          label: Text('3'),
-          child: Icon(Icons.notifications, size: 40),
-        ),
-      ],
-    );
-  }
-}
-
-class InputDemo extends StatelessWidget {
-  const InputDemo({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('TextField'),
-        SizedBox(height: 4),
-        TextField(
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Nama',
-            hintText: 'Ketik nama Anda',
-          ),
-        ),
-      ],
     );
   }
 }
